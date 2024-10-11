@@ -28,5 +28,6 @@
     "recipes": [
       "hotornot:mitts"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

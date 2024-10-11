@@ -2,12 +2,13 @@ package com.buuz135.hotornot;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -18,6 +19,7 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -59,6 +61,7 @@ public class HotOrNot {
     public HotOrNot() {
         LOGGER.debug("Loading up " + NAME);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, HotOrNotConfig.COMMON_SPEC, COMMON_CONFIG_NAME);
+        modEventBus.addListener(this::onBuildTabContents);
         modEventBus.addListener(this::gatherData);
         MinecraftForge.EVENT_BUS.register(this);
         ITEMS.register(modEventBus);
@@ -71,19 +74,26 @@ public class HotOrNot {
 
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
     public static final RegistryObject<MittItem> MITTS = ITEMS.register("mitts", () -> new MittItem(new Item.Properties()
-            .stacksTo(1).durability(12000).tab(CreativeModeTab.TAB_MISC)));
+            .stacksTo(1).durability(12000)));
+
+    private void onBuildTabContents(BuildCreativeModeTabContentsEvent event) {
+        if(event.getTabKey().equals(CreativeModeTabs.SEARCH)) {
+            event.accept(MITTS.get());
+        }
+    }
 
     public void gatherData(final GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
+        PackOutput output = generator.getPackOutput();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
 
         if (event.includeServer()) {
-            generator.addProvider(true, new DataGenerators.Recipes(generator));
+            generator.addProvider(true, new DataGenerators.Recipes(output));
         }
         if (event.includeClient()) {
-            generator.addProvider(true, new DataGenerators.Languages(generator, "en_us"));
-            generator.addProvider(true, new DataGenerators.Languages(generator, "de_de"));
-            generator.addProvider(true, new DataGenerators.ItemModels(generator, MOD_ID, existingFileHelper));
+            generator.addProvider(true, new DataGenerators.Languages(output, "en_us"));
+            generator.addProvider(true, new DataGenerators.Languages(output, "de_de"));
+            generator.addProvider(true, new DataGenerators.ItemModels(output, MOD_ID, existingFileHelper));
         }
     }
 

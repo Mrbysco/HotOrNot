@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "key": {
     "i": {
       "tag": "forge:ingots/iron"
@@ -65,5 +66,6 @@
   ],
   "result": {
     "item": "hotornot:mitts"
-  }
+  },
+  "show_notification": true
 }
